@@ -72,7 +72,7 @@ class StockListener(tpy.StreamListener):
 
 def start_listening(delay=0):
 	sleep(delay)
-	stream = tpy.Stream(auth, StockListener(max_filesize=25000000))
+	stream = tpy.Stream(auth, StockListener(max_filesize=25 * (1024 ** 3)))
 	stream.filter(track=stock_symbols())
 
 if __name__ == '__main__':
