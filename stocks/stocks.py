@@ -82,7 +82,7 @@ command_successful = True
 import atexit
 @atexit.register
 def exit_handler():
-	if command_successful:
+	if command_successful and command != 'test':
 		try:
 			os.remove(pid_file)
 		except: pass
