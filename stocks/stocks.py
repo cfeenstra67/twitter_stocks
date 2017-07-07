@@ -13,8 +13,6 @@ auth = tpy.OAuthHandler(credentials['consumer_key'], credentials['consumer_key_s
 auth.set_access_token(credentials['access_token'], credentials['access_token_secret'])
 api = tpy.API(auth)
 
-import csv
-
 def listgen(some_gen):
 	@wraps(some_gen)
 	def wrapped(*args, **kwargs):
@@ -70,10 +68,35 @@ class StockListener(tpy.StreamListener):
 		if self.max_responses and self.response_count >= self.max_responses: return True
 		return False
 
-def start_listening(delay=0):
+def start_listening(delay=0, attributes={'max_filesize': 25 * (1024 ** 3)}):
 	sleep(delay)
-	stream = tpy.Stream(auth, StockListener(max_filesize=25 * (1024 ** 3)))
+	stream = tpy.Stream(auth, StockListener(**attributes))
 	stream.filter(track=stock_symbols())
 
+pid_file = '.pid_python'
+
+import atexit
+def exit_handler():
+	try:
+		os.remove(pid_file)
+	except: pass
+	print('Completed at %s.' % str(datetime.now()))
+atexit.register(exit_handler)
+
 if __name__ == '__main__':
-	start_listening()
+	import argparse
+	parser = argparse.ArgumentParser()
+	parser.add_argument('action', nargs=None, default=None, help='Perform action--"start", "stop", or "test"')
+	args = parser.parse_args()
+	if args.action:
+		if args.action == 'start':
+			if os.path.exists(pid_file): raise Exception('Process already running.')
+			with open(pid_file, 'w+') as f: f.write(str(os.getpid()))
+			start_listening()
+		elif args.action == 'stop':
+			try:
+				with open(pid_file) as f: os.kill(int(f.read()), 1)
+			except FileNotFoundError:
+				raise Exception('No process currently running.')
+		elif args.action == 'test':
+			start_listening(attributes={'max_responses': 1})
