@@ -1,5 +1,4 @@
 #!usr/bin/env python3
-from functools import wraps
 from datetime import datetime
 from time import sleep
 from threading import Thread
@@ -14,12 +13,6 @@ auth.set_access_token(credentials['access_token'], credentials['access_token_sec
 api = tpy.API(auth)
 
 class CommandError(Exception): pass
-
-def listgen(some_gen):
-	@wraps(some_gen)
-	def wrapped(*args, **kwargs):
-		return [*some_gen(*args, **kwargs)]
-	return wrapped
 
 def stock_symbols(filename='tickers.txt'):
 	with open(filename, 'r') as f:
